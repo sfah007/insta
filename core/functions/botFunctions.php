@@ -61,6 +61,9 @@ function sendVideo($chat_id, $video, $caption) {
 function deleteMessage($chat_id, $message_id) {
     return apiRequest("deleteMessage", array('chat_id' => $chat_id, 'message_id' => $message_id));
 }
+function getUserProfilePhotos($user_id) {
+    return apiRequest("getUserProfilePhotos", array('user_id' => $user_id));
+}
 
 function saveStartInfo($message) {
     // variabl for user in db & log file

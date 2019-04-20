@@ -1,4 +1,40 @@
 <?php
+
+
+function mainRefStartBotRegisterNewUser($message) {
+    $chat_id = $message['chat']['id'];
+    $text = $message['text'];
+
+    $isAlreadyExistUser = isAlreadyExistUserData($chat_id);
+    if ($isAlreadyExistUser) {
+        showUserAlreadyExistMessage($chat_id);
+        return true;
+    }
+
+    creatNewUserData($chat_id);
+
+    if (hasParameter($text)) {
+        $userReferenceId = getStartParameter($text);
+
+        $isValidUser = isValidReferenceUser($userReferenceId);
+        if (!$isValidUser) {
+            showNotValidUserReferenceErrorMessage($chat_id);
+            return true;
+        }
+
+        $isExistReferenceID = isAlreadyExistReferenceIdInUserRefIdsList($userReferenceId, $chat_id);
+        if ($isExistReferenceID || $userReferenceId == $chat_id) {
+            showReferenceIdAlreadyExistMessage($chat_id);
+            return true;
+        }
+        addPointToUserReference($userReferenceId);
+        addReferenceIdToUserRefIdsList($userReferenceId, $chat_id);
+        sendAddPointNotificationToUserReference($userReferenceId);
+        showRegisterSuccessMessage($chat_id);
+    }
+}
+
+
 function hasParameter($text) {
     return strlen($text) > 6;
 }
@@ -99,3 +135,27 @@ function generateDirAndFiles($chat_id) {
     file_put_contents($path . "/level.txt", "");
     file_put_contents($path . "/reference_ids.txt", "");
 }
+
+function showRegisterSuccessMessage($chat_id) {
+    $message = getRegisterSuccessMessage();
+    sendMessage($chat_id, $message);
+}
+
+function showInviteMessage($chat_id, $inviteLink) {
+    $message = getInviteMessage();
+    $message .= "\n\n" . $inviteLink;
+    sendMessage($chat_id, $message);
+}
+
+function getInviteMessageText( $inviteLink) {
+    $message = getInviteMessage();
+    return $message . "\n\n" . $inviteLink;
+}
+
+/* TODO: encode RefID by using HEX
+ *
+ * hexdec(hex_string);
+ * dechex(number);
+ *
+ *
+*/
