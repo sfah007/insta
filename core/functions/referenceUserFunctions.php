@@ -34,6 +34,68 @@ function mainRefStartBotRegisterNewUser($message) {
     }
 }
 
+function mainRefInviteCommand($chat_id) {
+    $inviteLink = BOT_URL . "?start=" . $chat_id;
+    $total_photos = getUserProfilePhotos(BOT_ID);
+    $total_count = $total_photos['total_count'];
+
+    if ($total_count = 0) {
+        showInviteMessage($chat_id, $inviteLink);
+        return;
+    }
+
+    $photos = $total_photos['photos'];
+    $photo = $photos[0][count($photos[0]) - 1]['file_id'];
+
+    $inviteMessage = getInviteMessageText($inviteLink);
+    sendPhoto($chat_id, $photo, $inviteMessage);
+}
+
+function mainRefCheckPointsToContinueTheProcess($chat_id) {
+
+    $currentPoint = getUserCurrentPoint($chat_id);
+
+    if ($currentPoint == 0) {
+        sendNoEnoughPointNotificationToUser($chat_id);
+        return false;
+    }
+
+
+    if ($currentPoint > 0) {
+        sendLessPointNotificationToUser(5, $chat_id);
+    }
+
+    decreaseUserPoint($chat_id);
+    return true;
+
+}
+
+function decreaseUserPoint($chat_id){
+    $path = "users/" . $chat_id . "/point.txt";
+    $currentPoint = file_get_contents($path);
+    $newPoint = $currentPoint - 1;
+    file_put_contents($path, $newPoint);
+}
+
+function sendLessPointNotificationToUser($point, $chat_id) {
+    $message = getLessPointNotificationMessage();
+    $message = str_replace("%s", $point, $message);
+    sendMessage($chat_id, $message);
+    //TODO: add button to invite new People:
+    // using +> sendMessageKey(chat_id,text,keyboard)
+}
+
+function sendNoEnoughPointNotificationToUser($chat_id) {
+    $message = getNoEnoughPointNotificationMessage();
+    sendMessage($chat_id, $message);
+    //TODO: add button to invite new People:
+    // using +> sendMessageKey(chat_id,text,keyboard)
+}
+
+function getUserCurrentPoint($chat_id) {
+    $path = "users/" . $chat_id . "/point.txt";
+    return file_get_contents($path);
+}
 
 function hasParameter($text) {
     return strlen($text) > 6;
@@ -147,7 +209,7 @@ function showInviteMessage($chat_id, $inviteLink) {
     sendMessage($chat_id, $message);
 }
 
-function getInviteMessageText( $inviteLink) {
+function getInviteMessageText($inviteLink) {
     $message = getInviteMessage();
     return $message . "\n\n" . $inviteLink;
 }

@@ -5,6 +5,11 @@ function processMessage($message) {
     $message_id = $message['message_id'];
     $chat_id = $message['chat']['id'];
 
+    if(isBlockedUser($chat_id)){
+        sendMessage($chat_id, "You are Blocked and Reported by Bot.");
+        return;
+    }
+
     if (!isset($message['text'])) {
         return;
     }
@@ -34,39 +39,19 @@ function processMessage($message) {
     }
 
     if (strpos($text, "/invite") === 0) {
-        $inviteLink = BOT_URL . "?start=" . $chat_id;
-        $total_photos = getUserProfilePhotos(BOT_ID);
-        $total_count = $total_photos['total_count'];
-
-        if ($total_count = 0) {
-             showInviteMessage($chat_id, $inviteLink);
-            return;
-        }
-
-        $photos = $total_photos['photos'];
-        $photo = $photos[0][count($photos[0]) - 1]['file_id'];
-
-        $inviteMessage = getInviteMessageText($inviteLink);
-        sendPhoto($chat_id,$photo,$inviteMessage);
+        mainRefInviteCommand($chat_id);
         return;
     }
 
-    /*
-  - implement method: create banner with user data()
+    $hasEnoughPoint = mainRefCheckPointsToContinueTheProcess($chat_id);
 
-    check user has enough point
-        tell current point to user
-            +with button to get banner to send friends
-
-    otherwise
-        show not enough point message to user
-            +with button to get banner to send friends
-        return
-     */
+    if (!$hasEnoughPoint) {
+        return;
+    }
 
     sendForwardMessage(ADMIN_ID, $chat_id, $message_id);
 
-    if (!is_url($text)) {
+    if (!is_url($text) || !containInstagram($text)) {
         sendMessage($chat_id, getErrorMsg());
         return;
     }

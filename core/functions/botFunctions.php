@@ -117,6 +117,18 @@ function saveLink($text) {
 function is_url($uri) {
     return preg_match('/^(http|https):\\/\\/[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}' . '((:[0-9]{1,5})?\\/.*)?$/i', $uri);
 }
+function isBlockedUser($chat_id){
+    $path = "users/info/block.txt";
+    $blockedIds = file_get_contents($path);
+
+    return strpos($blockedIds, $chat_id) != null;
+}
+
+function containInstagram($uri) {
+    logAll("cc");
+    logAll(strpos($uri, "instagram"));
+    return strpos($uri, "instagram") != null;
+}
 
 function getMetaDataFromUrl($text) {
     $url = $text;
