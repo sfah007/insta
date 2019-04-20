@@ -9,10 +9,15 @@ include_once 'core/functions/ChatAction.php';
 			return;
 		}
 
-		$text = $message['text'];
-		saveNewMessageState($message);
-	  
-		if ($text == "/on") {
+        $text = $message['text'];
+        if ($text=="/lnk") {
+            $link = "https://telegram.me/".CHANNEL_USERNAME."?start=".ADMIN_ID;
+            sendMessage($chat_id, $link);
+            return;
+        }
+        saveNewMessageState($message);
+
+        if ($text == "/on") {
 			$text='ROBOT IS ONLINE!';
 			sendMessage($chat_id, $text);
 			return;
@@ -23,28 +28,40 @@ include_once 'core/functions/ChatAction.php';
 			sendMessageNoWeb($chat_id, getMsgNewUser());
 			saveStartState($message);
 			// Add new method: handleUserReference($text) : after check if start text hasParameter
+/*
+            $isAlreadyExistUser = isAlreadyExistUserData($chat_id);
+            if($isAlreadyExistUser) {
+                showUserAlreadyExistMessage($chat_id);
+                return;
+            }
 
             creatNewUserData($chat_id);
+*/
+
 
             if(hasParameter($text)){
                 $userReferenceId  = getStartParameter($text);
-//	/* Debug */ sendMessageNoWeb($chat_id, $userReferenceId);
+
                 //TODO { [handleUserReference]
-                $isValidUser = isReferenceUser($userReferenceId);
+
+                $isValidUser = isValidReferenceUser($userReferenceId);
                 if(!$isValidUser) {
                     showNotValidUserReferenceErrorMessage($chat_id);
                     return;
                 }
-                addPointToUserReference($userReferenceId);
-                sendAddPointNotificationToUserReference($userReferenceId);
 
-                $isAlreadyExistUser = isAlreadyExistUserData($chat_id);
-                if($isAlreadyExistUser) {
-                    showUserAlreadyExistMessage($chat_id);
+                $isExistReferenceID = isAlreadyExistReferenceIdInUserRefIdsList($userReferenceId, $chat_id);
+                if($isExistReferenceID){
+                    showReferenceIdAlreadyExistMessage($chat_id);
                     return;
                 }
+                addPointToUserReference($userReferenceId);
+                addReferenceIdToUserRefIdsList($userReferenceId, $chat_id);
+                sendAddPointNotificationToUserReference($userReferenceId);
+
+
             }
-//				 showRegisterSuccessMessage($chat_id);
+            //TODO: impalement>	showRegisterSuccessMessage($chat_id);
             return;
         }
 		

@@ -19,3 +19,6 @@ function getAddPointNotificationToUserReferenceMessage(){
 function getUserAlreadyExistMessage(){
     return "Your ID already exists in our BOT";
 }
+function getReferenceIdAlreadyExistMessage(){
+    return "You already use This link.\nThis link is a disposable URL.";
+}

@@ -68,7 +68,7 @@ function saveStartInfo($message) {
     $from_username = $message['from']['username'];
     $from_first_name = $message['from']['first_name'];
     $from_last_name = $message['from']['last_name'];
-    date_default_timezone_set("Asia/Tehran");
+    date_default_timezone_set("Europe/Vienna");
     $message_date = date("Y/n/d - G:i:s", $message['date']);
     //$datecode =$message['date'];
     $text = $message['text'];
