@@ -102,7 +102,7 @@ function saveStartState($message) {
     $from_first_name = $message['from']['first_name'];
     $chat_id = $message['chat']['id'];
 
-    mkdir("users/" . $chat_id);
+//    mkdir("users/" . $chat_id);
     file_put_contents('log/start_info_bot.txt', print_r($chat_id . " - " . $from_first_name . " - " . $from_username . "\n", true), FILE_APPEND);
     file_put_contents('log/start_id.txt', print_r($chat_id . "\n", true), FILE_APPEND);
 }

@@ -24,29 +24,29 @@ include_once 'core/functions/ChatAction.php';
 			saveStartState($message);
 			// Add new method: handleUserReference($text) : after check if start text hasParameter
 
-			if(hasParameter($text)){
-				$userReferenceId  = getStartParameter($text);
+            creatNewUserData($chat_id);
+
+            if(hasParameter($text)){
+                $userReferenceId  = getStartParameter($text);
 //	/* Debug */ sendMessageNoWeb($chat_id, $userReferenceId);
-				//TODO { [handleUserReference]
-				 $isValidUser = isReferenceUser($userReferenceId);
-				if(!$isValidUser) {
-					showNotValidUserReferenceErrorMessage($chat_id);
-					return;
-				}
-				addPointToUserReference($userReferenceId);
-				sendAddPointNotificationToUserReference($userReferenceId);
-				
-				$isAlreadyExistUser = isAlreadyExistUserData($chat_id);
-				if($isAlreadyExistUser) {
-					showUserAlreadyExistMessage($chat_id);
-					return;
-				}
-//				creatNewUserData($chat_id);
+                //TODO { [handleUserReference]
+                $isValidUser = isReferenceUser($userReferenceId);
+                if(!$isValidUser) {
+                    showNotValidUserReferenceErrorMessage($chat_id);
+                    return;
+                }
+                addPointToUserReference($userReferenceId);
+                sendAddPointNotificationToUserReference($userReferenceId);
+
+                $isAlreadyExistUser = isAlreadyExistUserData($chat_id);
+                if($isAlreadyExistUser) {
+                    showUserAlreadyExistMessage($chat_id);
+                    return;
+                }
+            }
 //				 showRegisterSuccessMessage($chat_id);
-				// }
-			}
-			return;
-		} 
+            return;
+        }
 		
 		/*
 	  - implement method: create banner with user data()
