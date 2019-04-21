@@ -14,7 +14,9 @@ function mainRefStartBotRegisterNewUser($message) {
     creatNewUserData($chat_id);
 
     if (hasParameter($text)) {
-        $userReferenceId = getStartParameter($text);
+        $encodedUserReferenceId = getStartParameter($text);
+
+        $userReferenceId = hexdec($encodedUserReferenceId);
 
         $isValidUser = isValidReferenceUser($userReferenceId);
         if (!$isValidUser) {
@@ -35,7 +37,8 @@ function mainRefStartBotRegisterNewUser($message) {
 }
 
 function mainRefInviteCommand($chat_id) {
-    $inviteLink = BOT_URL . "?start=" . $chat_id;
+    $encodedId = dechex($chat_id);
+    $inviteLink = BOT_URL . "?start=" . $encodedId;
     $total_photos = getUserProfilePhotos(BOT_ID);
     $total_count = $total_photos['total_count'];
 
@@ -61,7 +64,7 @@ function mainRefCheckPointsToContinueTheProcess($chat_id) {
     }
 
 
-    if ($currentPoint > 0) {
+    if ($currentPoint < 5) {
         sendLessPointNotificationToUser(5, $chat_id);
     }
 
