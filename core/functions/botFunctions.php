@@ -58,25 +58,55 @@ function sendVideo($chat_id, $video, $caption) {
     return apiRequest("sendVideo", array('chat_id' => $chat_id, 'video' => $video, 'caption' => $caption));
 }
 
+function answerCallbackQuery($callback_query_id, $text, $show_alert = false) {
+    return apiRequest("answerCallbackQuery", array('callback_query_id' => $callback_query_id, 'text' => $text, 'show_alert' => $show_alert));
+}
+
 function deleteMessage($chat_id, $message_id) {
     return apiRequest("deleteMessage", array('chat_id' => $chat_id, 'message_id' => $message_id));
 }
+
 function getUserProfilePhotos($user_id) {
     return apiRequest("getUserProfilePhotos", array('user_id' => $user_id));
 }
 
+function isBlockedUser($chat_id) {
+    $path = "users/info/block.txt";
+    $blockedIds = file_get_contents($path);
+    return strpos($blockedIds, trim($chat_id)) !== false;
+}
+
+function blockUser($message) {
+    $chat_id = $message['chat']['id'];
+
+    if (!isset($message['reply_to_message']['forward_from'])) {
+        $msg = getFailedBlockedUserNotification();
+        sendMessage($chat_id, $msg);
+        return;
+    }
+    $reply_to_message = $message['reply_to_message'];
+    $forward_from = $reply_to_message['forward_from'];
+    $id = $forward_from['id'];
+    saveInBlockedFile($id);
+
+    $msg = getSuccessBlockedUserNotification();
+    sendMessage($chat_id, $msg);
+}
+
+function saveInBlockedFile($id) {
+    file_put_contents('users/info/block.txt', $id . "\n", FILE_APPEND);
+}
+
+
 function saveStartInfo($message) {
-    // variabl for user in db & log file
     $from_id = $message['from']['id'];
     $from_username = $message['from']['username'];
     $from_first_name = $message['from']['first_name'];
     $from_last_name = $message['from']['last_name'];
     date_default_timezone_set("Europe/Vienna");
     $message_date = date("Y/n/d - G:i:s", $message['date']);
-    //$datecode =$message['date'];
     $text = $message['text'];
 
-    // Save all message in log file
     $filename = 'log/user.txt';
     $fileHandler = fopen($filename, "a");
     fwrite($fileHandler, $from_id . " ;\t " . $from_username . " ;\t " . $from_first_name . " ;\t " . $from_last_name . " ;\t " . $message_date . " ;\t " . $text . "\n");
@@ -105,7 +135,6 @@ function saveStartState($message) {
     $from_first_name = $message['from']['first_name'];
     $chat_id = $message['chat']['id'];
 
-//    mkdir("users/" . $chat_id);
     file_put_contents('log/start_info_bot.txt', print_r($chat_id . " - " . $from_first_name . " - " . $from_username . "\n", true), FILE_APPEND);
     file_put_contents('log/start_id.txt', print_r($chat_id . "\n", true), FILE_APPEND);
 }
@@ -117,12 +146,7 @@ function saveLink($text) {
 function is_url($uri) {
     return preg_match('/^(http|https):\\/\\/[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}' . '((:[0-9]{1,5})?\\/.*)?$/i', $uri);
 }
-function isBlockedUser($chat_id){
-    $path = "users/info/block.txt";
-    $blockedIds = file_get_contents($path);
 
-    return strpos($blockedIds, $chat_id) != null;
-}
 
 function containInstagram($uri) {
     logAll("cc");
