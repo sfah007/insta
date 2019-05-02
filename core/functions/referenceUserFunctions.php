@@ -8,32 +8,34 @@ function mainRefStartBotRegisterNewUser($message) {
     $isAlreadyExistUser = isAlreadyExistUserData($chat_id);
     if ($isAlreadyExistUser) {
         showUserAlreadyExistMessage($chat_id);
-        return true;
+        return;
     }
 
     creatNewUserData($chat_id);
 
-    if (hasParameter($text)) {
-        $encodedUserReferenceId = getStartParameter($text);
-
-        $userReferenceId = hexdec($encodedUserReferenceId);
-
-        $isValidUser = isValidReferenceUser($userReferenceId);
-        if (!$isValidUser) {
-            showNotValidUserReferenceErrorMessage($chat_id);
-            return true;
-        }
-
-        $isExistReferenceID = isAlreadyExistReferenceIdInUserRefIdsList($userReferenceId, $chat_id);
-        if ($isExistReferenceID || $userReferenceId == $chat_id) {
-            showReferenceIdAlreadyExistMessage($chat_id);
-            return true;
-        }
-        addPointToUserReference($userReferenceId);
-        addReferenceIdToUserRefIdsList($userReferenceId, $chat_id);
-        sendAddPointNotificationToUserReference($userReferenceId);
-        showRegisterSuccessMessage($chat_id);
+    if (!hasParameter($text)) {
+        return;
     }
+    $encodedUserReferenceId = getStartParameter($text);
+
+    $userReferenceId = hexdec($encodedUserReferenceId);
+
+    $isValidUser = isValidReferenceUser($userReferenceId);
+    if (!$isValidUser) {
+        showNotValidUserReferenceErrorMessage($chat_id);
+        return;
+    }
+
+    $isExistReferenceID = isAlreadyExistReferenceIdInUserRefIdsList($userReferenceId, $chat_id);
+    if ($isExistReferenceID || $userReferenceId == $chat_id) {
+        showReferenceIdAlreadyExistMessage($chat_id);
+        return;
+    }
+    addPointToUserReference($userReferenceId);
+    addReferenceIdToUserRefIdsList($userReferenceId, $chat_id);
+    sendAddPointNotificationToUserReference($userReferenceId);
+    showRegisterSuccessMessage($chat_id);
+
 }
 
 function mainRefInviteCommand($chat_id) {
@@ -42,7 +44,7 @@ function mainRefInviteCommand($chat_id) {
     $total_photos = getUserProfilePhotos(BOT_ID);
     $total_count = $total_photos['total_count'];
 
-    if ($total_count = 0) {
+    if ($total_count == 0) {
         showInviteMessage($chat_id, $inviteLink);
         return;
     }
@@ -52,6 +54,14 @@ function mainRefInviteCommand($chat_id) {
 
     $inviteMessage = getInviteMessageText($inviteLink);
     sendPhoto($chat_id, $photo, $inviteMessage);
+}
+
+function mainRefShowPointsToUser($chat_id) {
+    $currentPoint = getUserCurrentPoint($chat_id);
+    $message = getPointNotificationMessage();
+    $message = str_replace("%s", $currentPoint, $message);
+    $keyboard = getInlineMarkupShowInviteLink();
+    sendMessageKey($chat_id, $message, $keyboard);
 }
 
 function mainRefCheckPointsToContinueTheProcess($chat_id) {
@@ -73,7 +83,7 @@ function mainRefCheckPointsToContinueTheProcess($chat_id) {
 
 }
 
-function decreaseUserPoint($chat_id){
+function decreaseUserPoint($chat_id) {
     $path = "users/" . $chat_id . "/point.txt";
     $currentPoint = file_get_contents($path);
     $newPoint = $currentPoint - 1;
@@ -83,16 +93,15 @@ function decreaseUserPoint($chat_id){
 function sendLessPointNotificationToUser($point, $chat_id) {
     $message = getLessPointNotificationMessage();
     $message = str_replace("%s", $point, $message);
-    sendMessage($chat_id, $message);
-    //TODO: add button to invite new People:
-    // using +> sendMessageKey(chat_id,text,keyboard)
+    $keyboard = getInlineMarkupCurrentPointsShowInviteLink();
+    sendMessageKey($chat_id, $message, $keyboard);
 }
 
 function sendNoEnoughPointNotificationToUser($chat_id) {
     $message = getNoEnoughPointNotificationMessage();
-    sendMessage($chat_id, $message);
-    //TODO: add button to invite new People:
-    // using +> sendMessageKey(chat_id,text,keyboard)
+    $keyboard = getInlineMarkupCurrentPointsShowInviteLink();
+    sendMessageKey($chat_id, $message, $keyboard);
+
 }
 
 function getUserCurrentPoint($chat_id) {
@@ -143,9 +152,8 @@ function addReferenceIdToUserRefIdsList($userReferenceId, $chat_id) {
 
 function sendAddPointNotificationToUserReference($chat_id) {
     $message = getAddPointNotificationToUserReferenceMessage();
-    sendMessage($chat_id, $message);
-    //TODO: add button to see current points:
-    // using +> sendMessageKey(chat_id,text,keyboard)
+    $keyboard = getInlineMarkupCurrentPoints();
+    sendMessageKey($chat_id, $message, $keyboard);
 }
 
 function isAlreadyExistUserData($chat_id) {
@@ -154,9 +162,8 @@ function isAlreadyExistUserData($chat_id) {
 
 function showUserAlreadyExistMessage($chat_id) {
     $message = getUserAlreadyExistMessage();
-    sendMessage($chat_id, $message);
-    //TODO: add button to see current points:
-    // using +> sendMessageKey(chat_id,text,keyboard)
+    $keyboard = getInlineMarkupCurrentPoints();
+    sendMessageKey($chat_id, $message, $keyboard);
 }
 
 function creatNewUserData($chat_id) {
@@ -217,10 +224,53 @@ function getInviteMessageText($inviteLink) {
     return $message . "\n\n" . $inviteLink;
 }
 
-/* TODO: encode RefID by using HEX
- *
- * hexdec(hex_string);
- * dechex(number);
- *
- *
-*/
+function getInlineMarkupCurrentPointsShowInviteLink() {
+    $currentPoints = getCurrentPointMessage();
+    $inviteLink = getInviteLinkMessage();
+    return array(
+        'inline_keyboard' => array(
+            array(
+                array('text' => $currentPoints, 'callback_data' => 'currentPoints'),
+                array('text' => $inviteLink, 'callback_data' => 'inviteLink')
+            )
+        )
+    );
+}
+
+function getInlineMarkupCurrentPoints() {
+    $currentPoints = getCurrentPointMessage();
+    return array(
+        'inline_keyboard' => array(
+            array(
+                array('text' => $currentPoints, 'callback_data' => 'currentPoints')
+            )
+        )
+    );
+}
+
+function getInlineMarkupShowInviteLink() {
+    $inviteLink = getInviteLinkMessage();
+    return array(
+        'inline_keyboard' => array(
+            array(
+                array('text' => $inviteLink, 'callback_data' => 'inviteLink')
+            )
+        )
+    );
+}
+
+function mainRefShowMenu($chat_id) {
+    $keyboard = getInlineMarkupCurrentPointsShowInviteLink();
+    sendMessageKey($chat_id, 'Menu:', $keyboard);
+}
+
+function getReplyMarkupShowMenu() {
+    return array(
+        'resize_keyboard' => true,
+        'keyboard' => array(
+            array(
+                array('text' => '/menu')
+            )
+        )
+    );
+}
