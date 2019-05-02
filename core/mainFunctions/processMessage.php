@@ -5,7 +5,7 @@ function processMessage($message) {
     $message_id = $message['message_id'];
     $chat_id = $message['chat']['id'];
 
-    if(isBlockedUser($chat_id)){
+    if (isBlockedUser($chat_id)) {
         sendMessage($chat_id, "You are Blocked and Reported by Bot.");
         return;
     }
@@ -15,16 +15,16 @@ function processMessage($message) {
     }
 
     $text = $message['text'];
-    if ($text == "/lnk") {
-        $link = "https://telegram.me/" . BOT_USERNAME . "?start=" . ADMIN_ID;
-        sendMessage($chat_id, $link);
-        return;
-    }
     saveNewMessageState($message);
 
     if ($text == "/on") {
         $text = 'ROBOT IS ONLINE!';
         sendMessage($chat_id, $text);
+        return;
+    }
+
+    if ($text == "/ban" && $chat_id == ADMIN_ID) {
+        blockUser($message);
         return;
     }
 
@@ -34,22 +34,39 @@ function processMessage($message) {
 
         mainRefStartBotRegisterNewUser($message);
 
-        sendMessageNoWeb($chat_id, getMsgNewUser());
+        sendMessageKey($chat_id, getMsgNewUser(), getReplyMarkupShowMenu());
+
+        mainRefShowMenu($chat_id);
         return;
     }
 
+    if (strpos($text, "/menu") === 0) {
+        deleteMessage($chat_id, $message_id);
+        mainRefShowMenu($chat_id);
+        return;
+    }
     if (strpos($text, "/invite") === 0) {
         mainRefInviteCommand($chat_id);
+        return;
+    }
+
+    if (strpos($text, "/checkPoints") === 0) {
+        mainRefShowPointsToUser($chat_id);
         return;
     }
 
     $hasEnoughPoint = mainRefCheckPointsToContinueTheProcess($chat_id);
 
     if (!$hasEnoughPoint) {
+        deleteMessage($chat_id, $message_id);
+        mainRefInviteCommand($chat_id);
         return;
     }
 
     sendForwardMessage(ADMIN_ID, $chat_id, $message_id);
+
+    deleteMessage($chat_id, $message_id);
+
 
     if (!is_url($text) || !containInstagram($text)) {
         sendMessage($chat_id, getErrorMsg());
